@@ -1,0 +1,77 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.StringTokenizer;
+
+public class Solution {
+	static int[] dy = new int[] { 0, 0, 1, -1 };
+	static int[] dx = new int[] { 1, -1, 0, 0 };
+
+	public static void main(String[] args) throws IOException {
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		int T = Integer.parseInt(br.readLine());
+		StringTokenizer st;
+		for (int tc = 1; tc <= T; tc++) {
+			st = new StringTokenizer(br.readLine());
+			int N = Integer.parseInt(st.nextToken());
+			int M = Integer.parseInt(st.nextToken());
+			int[][] map = new int[N][N];
+			String str;
+			for (int i = 0; i < N; i++) {
+				str = br.readLine();
+				for (int j = 0; j < N; j++) {
+					map[i][j] = str.charAt(j * 2) - '0';
+				}
+			}
+
+			int result = 1;
+			Queue<Pos> q = new LinkedList<>();
+			int[][] visit;
+			for (int i = 0; i < N; i++) {
+				for (int j = 0; j < N; j++) {
+					visit = new int[N][N];
+					q.clear();
+					q.add(new Pos(i, j));
+					visit[i][j] = 1;
+					int homeCnt = map[i][j];
+
+					int cnt = 1;
+					while (!q.isEmpty()) {
+						int n = q.size();
+						for (int k = 0; k < n; k++) {
+							Pos p = q.poll();
+							for (int l = 0; l < 4; l++) {
+								int ny = p.y + dy[l];
+								int nx = p.x + dx[l];
+								if (ny < 0 || ny >= N || nx < 0 || nx >= N || visit[ny][nx] == 1)
+									continue;
+								if (map[ny][nx] == 1)
+									homeCnt++;
+								visit[ny][nx] = 1;
+								q.add(new Pos(ny, nx));
+							}
+						}
+						cnt++;
+						int val = homeCnt * M - ((cnt * cnt) + (cnt - 1) * (cnt - 1));
+						if (val < 0)
+							continue;
+						result = Math.max(result, homeCnt);
+					}
+				}
+			}
+			System.out.printf("#%d %d\n", tc, result);
+		}
+	}
+
+	static class Pos {
+		int y, x;
+
+		public Pos(int y, int x) {
+			super();
+			this.y = y;
+			this.x = x;
+		}
+	}
+}
