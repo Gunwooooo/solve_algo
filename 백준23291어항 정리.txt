@@ -1,0 +1,175 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.StringTokenizer;
+
+public class Main{
+	static int[][] map;
+	static int N, K;
+
+	public static void main(String[] args) throws IOException {
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		StringTokenizer st = new StringTokenizer(br.readLine());
+		N = Integer.parseInt(st.nextToken());
+		K = Integer.parseInt(st.nextToken());
+		map = new int[N][N];
+
+		st = new StringTokenizer(br.readLine());
+
+		for (int i = 0; i < N; i++) {
+			map[0][i] = Integer.parseInt(st.nextToken());
+		}
+
+		int result = 0;
+
+		while (true) {
+			// 최솟값 찾기
+			int maxVal = -1;
+			int minVal = 123456789;
+			for (int i = 0; i < N; i++) {
+				minVal = Math.min(map[0][i], minVal);
+				maxVal = Math.max(map[0][i], maxVal);
+			}
+
+			if (Math.abs(minVal - maxVal) <= K) {
+				System.out.println(result);
+				return;
+			}
+
+
+			// 1. 최소값에 +1 씩 하기
+			for (int i = 0; i < N; i++) {
+				if (map[0][i] == minVal)
+					map[0][i]++;
+			}
+
+
+			// 어항 90도씩 돌돌말기
+			int time = 0;
+			int pivot = 0;
+			int pivotAdd = 1;
+			int w = 1;
+			int h = 1;
+			while (true) {
+				// 배열 말기 및 종료 시점 확인
+				if (!rotateArray(pivot, w, h, pivotAdd)) {
+					break;
+				}
+				time++;
+				pivot += pivotAdd;
+				if (time % 2 == 1) {
+					h++;
+				} else {
+					if (time != 0)
+						pivotAdd++;
+					w++;
+				}
+			}
+
+
+			cutArray(pivot, h);
+
+
+			// 재 정렬
+			int[][] newMap = new int[N][N];
+			newMap = arrangeArray(newMap, pivot, h);
+
+			map = newMap;
+
+			// 반틈 올리기
+			for (int i = 0; i < N / 2; i++) {
+				map[1][N - i - 1] = map[0][i];
+				map[0][i] = 0;
+			}
+
+			// 반틈 돌려서 올리기
+
+			for (int i = 0; i < 2; i++) {
+				int k = 0;
+				for (int j = N / 2; j < N / 2 + N / 4; j++) {
+					map[3 - i][N - k - 1] = map[i][j];
+					map[i][j] = 0;
+					k++;
+				}
+			}
+
+			// 다시 깎기
+			cutArray(N / 2 + N / 4, 4);
+
+			// 다시 정렬
+			newMap = new int[N][N];
+			newMap = arrangeArray(newMap, N / 2 + N / 4, 4);
+			map = newMap;
+
+			result++;
+		}
+
+	}
+
+	// 배열 90도 돌리는 함수
+	static boolean rotateArray(int pivot, int w, int h, int pivotAdd) {
+		int SY = h - 1;
+		int SX = pivot;
+		int nextSY = w;
+		int nextSX = pivot + pivotAdd;
+		for (int i = 0; i < h; i++) {
+			for (int j = 0; j < w; j++) {
+				if (nextSX + h - i - 1 >= N)
+					return false;
+				map[nextSY - j][nextSX + h - i - 1] = map[SY - i][SX + j];
+				map[SY - i][SX + j] = 0;
+			}
+		}
+		return true;
+	}
+
+	// 깎기
+	static int[] dy = { 0, 1 };
+	static int[] dx = { 1, 0 };
+
+	static void cutArray(int pivot, int h) {
+		int[][] tmpMap = new int[N][N];
+		for (int i = 0; i < h; i++) {
+			for (int j = pivot; j < N; j++) {
+				if (map[i][j] == 0)
+					break;
+				for (int k = 0; k < 2; k++) {
+					if (i + dy[k] >= h || j + dx[k] >= N)
+						continue;
+					int nextVal = map[i + dy[k]][j + dx[k]];
+					if (map[i][j] == nextVal || map[i + dy[k]][j + dx[k]] == 0)
+						continue;
+					int d = Math.abs((map[i][j] - nextVal)) / 5;
+					if (map[i][j] > nextVal) {
+						tmpMap[i][j] -= d;
+						tmpMap[i + dy[k]][j + dx[k]] += d;
+					} else {
+						tmpMap[i][j] += d;
+						tmpMap[i + dy[k]][j + dx[k]] -= d;
+					}
+				}
+			}
+		}
+
+		// 원래 배열에 연산
+		for (int i = 0; i < N; i++) {
+			for (int j = 0; j < N; j++) {
+				map[i][j] += tmpMap[i][j];
+			}
+		}
+	}
+
+	static int[][] arrangeArray(int[][] newMap, int pivot, int h) {
+		int k = 0;
+		for (int i = pivot; i < N; i++) {
+			for (int j = 0; j < h; j++) {
+				if (map[j][i] == 0)
+					continue;
+				newMap[0][k++] = map[j][i];
+			}
+		}
+		return newMap;
+	}
+
+}
